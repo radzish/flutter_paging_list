@@ -43,9 +43,9 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
   bool _loadAfterRequested = false;
 
   GlobalObjectKey _dataToPrependOffstageKey =
-  new GlobalObjectKey("_dataToPrependOffstageKey");
+      new GlobalObjectKey("_dataToPrependOffstageKey");
   GlobalObjectKey _dataToAppendOffstageKey =
-  new GlobalObjectKey("_dataOffstageKey");
+      new GlobalObjectKey("_dataOffstageKey");
 
   GlobalObjectKey _listContainerKey = new GlobalObjectKey("_listContainerKey");
 
@@ -131,9 +131,9 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
   }
 
   ScrollController _createController(double height) => new ScrollController(
-    initialScrollOffset: height,
-    keepScrollOffset: false,
-  )..addListener(_scrollListener);
+        initialScrollOffset: height,
+        keepScrollOffset: false,
+      )..addListener(_scrollListener);
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +146,7 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
 
     if (!_initialScrollRequested) {
       List<Widget> items =
-      _data.map((item) => _itemBuilder(context, item)).toList();
+          _data.map((item) => _itemBuilder(context, item)).toList();
 
       if (_hasDataBefore) {
         items.insert(0, _createLoadingIndicator());
@@ -160,9 +160,6 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
           reverse: widget.reverse,
           controller: _controller,
           children: items,
-        ),
-        onTap: () => setState(
-              () {},
         ),
       );
 
@@ -178,7 +175,7 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
 
       if (_initialScrollRequested || _loadBeforeRequested) {
         List<Widget> dataToPrependOffstageItems =
-        _dataToPrepend.map((item) => _itemBuilder(context, item)).toList();
+            _dataToPrepend.map((item) => _itemBuilder(context, item)).toList();
         positionedChildren.add(
           new Positioned(
             left: 0.0,
@@ -194,7 +191,7 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
 
       if (_initialScrollRequested || _loadAfterRequested) {
         List<Widget> dataToAppendOffstageItems =
-        _dataToAppend.map((item) => _itemBuilder(context, item)).toList();
+            _dataToAppend.map((item) => _itemBuilder(context, item)).toList();
         positionedChildren.add(
           new Positioned(
             left: 0.0,
@@ -239,9 +236,9 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
       _initialLoading = true;
     });
     Future<List<T>> beforeFuture =
-    _dataSource.loadBefore(null, _dataSource.pageSize);
+        _dataSource.loadBefore(null, _dataSource.pageSize);
     Future<List<T>> afterFuture =
-    _dataSource.loadAfter(null, _dataSource.pageSize);
+        _dataSource.loadAfter(null, _dataSource.pageSize);
     List<List<T>> results = await Future.wait([beforeFuture, afterFuture]);
     setState(() {
       List<T> dataBefore = results[0];
@@ -273,7 +270,7 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
       }
     } else {
       RenderBox _listContainerBox =
-      _listContainerKey.currentContext?.findRenderObject() as RenderBox;
+          _listContainerKey.currentContext?.findRenderObject() as RenderBox;
       if (_controller.offset >
           _totalHeight -
               _listContainerBox.size.height +
