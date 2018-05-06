@@ -1,0 +1,9 @@
+Thumbs.db
+.DS_Store
+.atom/
+.dart_tool
+.idea
+.packages
+.pub/
+pubspec.lock
+*.iml
