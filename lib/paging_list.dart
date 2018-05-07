@@ -8,6 +8,9 @@ import 'package:meta/meta.dart';
 
 typedef PagingItemBuilder<T> = Widget Function(BuildContext, T);
 
+//TODO: BUG initial loading when list is offstage: initial has before and after, but after has not enough height => should do another call
+//TODO: refactor build method
+
 class PagingListView<T> extends StatefulWidget {
   final PagingDataSource<T> dataSource;
   final PagingItemBuilder<T> builder;
@@ -145,9 +148,6 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
     _firstFrameAfterBuild = true;
 
     List<Widget> children = [];
-    if (_initialLoading) {
-      children.add(new LinearProgressIndicator());
-    }
 
     if (!_initialScrollRequested) {
       List<Widget> items =
@@ -166,7 +166,18 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
         children: items,
       );
 
-      children.add(listView);
+      children.add(new Stack(
+        key: _listContainerKey,
+        fit: StackFit.expand,
+        children: <Widget>[
+          listView,
+        ],
+      ));
+    } else {
+      children.add(new Stack(
+        key: _listContainerKey,
+        fit: StackFit.expand,
+      ));
     }
 
     if (_initialScrollRequested ||
@@ -218,9 +229,11 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
       children.add(offstage);
     }
 
+    if (_initialLoading) {
+      children.add(new LinearProgressIndicator());
+    }
+
     return new Stack(
-      key: _listContainerKey,
-      fit: StackFit.expand,
       children: children,
     );
   }
