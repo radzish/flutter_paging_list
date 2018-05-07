@@ -55,7 +55,7 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
   bool _loadBeforeInProgress = false;
   bool _loadAfterInProgress = false;
 
-  List<T> _dataToPrepend;
+  List<T> _dataToPrepend = [];
   List<T> _dataToAppend = [];
 
   double _totalHeight = 0.0;
@@ -78,6 +78,10 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
     WidgetsBinding.instance.addPersistentFrameCallback((_) {
       if (_firstFrameAfterBuild) {
         _firstFrameAfterBuild = false;
+
+        //need this to handle cases when initial page has no height enough
+        //to fill the whole screen. so another page is requested;
+        _checkIfLoadingNeeded();
 
         if (_initialScrollRequested ||
             _loadBeforeRequested ||
@@ -133,7 +137,7 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
   ScrollController _createController(double height) => new ScrollController(
         initialScrollOffset: height,
         keepScrollOffset: false,
-      )..addListener(_scrollListener);
+      )..addListener(_checkIfLoadingNeeded);
 
   @override
   Widget build(BuildContext context) {
@@ -224,6 +228,12 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
   void _invalidate() {
     _dataSource = widget.dataSource;
     _data = [];
+    _controller = null;
+    _dataToPrepend = [];
+    _dataToAppend = [];
+    _totalHeight = 0.0;
+    _hasDataBefore = false;
+    _hasDataAfter = false;
     _loadInitial();
   }
 
@@ -262,29 +272,43 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
     );
   }
 
-  void _scrollListener() {
-    if (_controller.offset < _loading_indicator_height) {
-      if (!_loadBeforeInProgress && _hasDataBefore) {
-        _loadBeforeInProgress = true;
-        _loadBefore();
-      }
+  void _checkIfLoadingNeeded() {
+    RenderBox list =
+        _listContainerKey.currentContext?.findRenderObject() as RenderBox;
+    double listHeight = list.size.height;
+    if (_totalHeight < listHeight) {
+      _requestLoadAfter();
     } else {
-      RenderBox _listContainerBox =
-          _listContainerKey.currentContext?.findRenderObject() as RenderBox;
-      if (_controller.offset >
-          _totalHeight -
-              _listContainerBox.size.height +
-              (_hasDataBefore ? _loading_indicator_height : 0)) {
-        if (!_loadAfterInProgress && _hasDataAfter) {
-          _loadAfterInProgress = true;
-          _loadAfter();
+      if (_controller != null) {
+        if (_controller.offset < _loading_indicator_height) {
+          _requestLoadBefore();
+        } else {
+          if (_controller.offset >
+              _totalHeight -
+                  listHeight +
+                  (_hasDataBefore ? _loading_indicator_height : 0)) {
+            _requestLoadAfter();
+          }
         }
       }
     }
   }
 
+  void _requestLoadAfter() {
+    if (!_loadAfterInProgress && _hasDataAfter) {
+      _loadAfterInProgress = true;
+      _loadAfter();
+    }
+  }
+
+  void _requestLoadBefore() {
+    if (!_loadBeforeInProgress && _hasDataBefore) {
+      _loadBeforeInProgress = true;
+      _loadBefore();
+    }
+  }
+
   void _loadBefore() async {
-    print("!!!!!!!!!!!!!!!!!! load before ...");
     List<T> dataBefore = await _dataSource.loadBefore(
         _data.isNotEmpty ? _data[0] : null, _dataSource.pageSize);
     setState(() {
@@ -294,7 +318,6 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
   }
 
   void _loadAfter() async {
-    print("!!!!!!!!!!!!!!!!!! load after ...");
     List<T> dataAfter = await _dataSource.loadAfter(
         _data.isNotEmpty ? _data.last : null, _dataSource.pageSize);
     setState(() {
