@@ -283,7 +283,7 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
   Widget _createLoadingIndicator() {
     return new Container(
       alignment: AlignmentDirectional.center,
-      child: Platform.isIOS ? new CupertinoActivityIndicator() : new CircularProgressIndicator(),
+      child: Platform.isIOS ? new CupertinoActivityIndicator(radius: 16.0,) : new CircularProgressIndicator(),
       height: _loading_indicator_height,
     );
   }
