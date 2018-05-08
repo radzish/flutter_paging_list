@@ -1,7 +1,9 @@
 library flutter_paging_list;
 
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
@@ -281,7 +283,7 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
   Widget _createLoadingIndicator() {
     return new Container(
       alignment: AlignmentDirectional.center,
-      child: new CircularProgressIndicator(),
+      child: Platform.isIOS ? new CupertinoActivityIndicator() : new CircularProgressIndicator(),
       height: _loading_indicator_height,
     );
   }
