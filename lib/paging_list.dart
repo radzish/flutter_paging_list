@@ -25,12 +25,12 @@ class PagingListView<T> extends StatefulWidget {
   });
 
   @override
-  PagingListViewState<T> createState() {
-    return new PagingListViewState<T>();
+  _PagingListViewState<T> createState() {
+    return new _PagingListViewState<T>();
   }
 }
 
-class PagingListViewState<T> extends State<PagingListView<T>> {
+class _PagingListViewState<T> extends State<PagingListView<T>> {
   static const _loading_indicator_height = 56.0;
 
   PagingDataSource<T> _dataSource;
@@ -65,6 +65,8 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
 
   double _totalHeight = 0.0;
 
+  _PagingListViewState() {}
+
   @override
   void didUpdateWidget(PagingListView<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -79,7 +81,12 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
   void initState() {
     super.initState();
     _invalidate();
+    Future.microtask(() {
+      _createBindingCallback();
+    });
+  }
 
+  void _createBindingCallback() {
     WidgetsBinding.instance.addPersistentFrameCallback((_) {
       if (_firstFrameAfterBuild) {
         _firstFrameAfterBuild = false;
@@ -261,11 +268,13 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
     setState(() {
       _initialLoading = true;
     });
+
     Future<List<T>> beforeFuture =
         _dataSource.loadBefore(null, _dataSource.pageSize);
     Future<List<T>> afterFuture =
         _dataSource.loadAfter(null, _dataSource.pageSize);
     List<List<T>> results = await Future.wait([beforeFuture, afterFuture]);
+
     setState(() {
       List<T> dataBefore = results[0];
       List<T> dataAfter = results[1];
@@ -283,7 +292,11 @@ class PagingListViewState<T> extends State<PagingListView<T>> {
   Widget _createLoadingIndicator() {
     return new Container(
       alignment: AlignmentDirectional.center,
-      child: Platform.isIOS ? new CupertinoActivityIndicator(radius: 16.0,) : new CircularProgressIndicator(),
+      child: Platform.isIOS
+          ? new CupertinoActivityIndicator(
+              radius: 16.0,
+            )
+          : new CircularProgressIndicator(),
       height: _loading_indicator_height,
     );
   }
