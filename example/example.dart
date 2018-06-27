@@ -37,13 +37,17 @@ class _MyHomePageState extends State<MyHomePage> {
     dataSource = ExampleDataSource();
   }
 
+  void refreshData() {
+    dataSource.reload();
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text(widget.title),
       ),
-      body: new PagingListView<ExampleItem>(
+      body: new PagingListView<ExampleItem, int>(
         dataSource: dataSource,
         builder: (BuildContext context, ExampleItem item) {
           return new Container(
@@ -54,13 +58,16 @@ class _MyHomePageState extends State<MyHomePage> {
           );
         },
       ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: refreshData,
+        child: Icon(Icons.refresh),
+      ),
     );
   }
 }
 
-class ExampleDataSource extends PagingDataSource<ExampleItem> {
-  Duration _createDelay() =>
-      new Duration(milliseconds: new Random().nextInt(700) + 300);
+class ExampleDataSource extends PagingDataSource<ExampleItem, int> {
+  Duration _createDelay() => new Duration(milliseconds: new Random().nextInt(700) + 300);
 
   ExampleDataSource() : super(10);
 
@@ -68,9 +75,9 @@ class ExampleDataSource extends PagingDataSource<ExampleItem> {
     List<ExampleItem> page = [];
     ExampleItem prev = item != null ? item : ExampleItem(0, null);
     for (int i = 0; i < limit; i++) {
-      //no data before -45
+      //no data before -25
       if (prev.id > -25) {
-        prev = ExampleItem(prev.id - 1, "item: ${prev.id - 1}");
+        prev = ExampleItem(prev.id - 1, "item: ${prev.id - 1} updated: ${Random().nextInt(20)}");
         page.insert(0, prev);
       } else {
         break;
@@ -81,15 +88,20 @@ class ExampleDataSource extends PagingDataSource<ExampleItem> {
 
   Future<List<ExampleItem>> loadAfter(ExampleItem item, int limit) {
     List<ExampleItem> page = [];
-    ExampleItem prev = item != null ? item : ExampleItem(-1, null);
+    ExampleItem prev = item != null ? ExampleItem(item.id, null) : ExampleItem(-1, null);
     for (int i = 0; i < limit; i++) {
-      //no data after 45
+      //no data after 25
       if (prev.id < 25) {
-        prev = ExampleItem(prev.id + 1, "item: ${prev.id + 1}");
+        prev = ExampleItem(prev.id + 1, "item: ${prev.id + 1} updated: ${Random().nextInt(20)}");
         page.add(prev);
       }
     }
     return Future.delayed(_createDelay()).then((_) => Future.value(page));
+  }
+
+  @override
+  int getKey(ExampleItem item) {
+    return item.id;
   }
 }
 
@@ -102,6 +114,10 @@ class ExampleItem {
 
   double get height => _height;
 
-  ExampleItem(this.id, this.name)
-      : _height = (Random().nextInt(100) + 56).toDouble();
+  ExampleItem(this.id, this.name) : _height = (Random().nextInt(100) + 56).toDouble();
+
+  @override
+  String toString() {
+    return 'ExampleItem{name: $name}';
+  }
 }
